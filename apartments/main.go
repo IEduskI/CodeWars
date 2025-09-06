@@ -25,57 +25,9 @@ func main() {
 		log.Fatalf("Error unmarshalling JSON: %v", err)
 	}
 
-	gymDistances := make([]int, len(blocks))
-	schoolDistances := make([]int, len(blocks))
-	storeDistances := make([]int, len(blocks))
-
-	prevGymIndex := -len(blocks)
-	nextGymIndex := 2 * len(blocks)
-	for i := range blocks {
-		if hasService(blocks, i, func(b Blocks) bool { return b.Gym }) {
-			prevGymIndex = i
-		}
-		gymDistances[i] = i - prevGymIndex
-	}
-
-	for i := len(blocks) - 1; i >= 0; i-- {
-		if hasService(blocks, i, func(b Blocks) bool { return b.Gym }) {
-			nextGymIndex = i
-		}
-		gymDistances[i] = min(gymDistances[i], nextGymIndex-i)
-	}
-
-	prevSchoolIndex := -len(blocks)
-	nextSchoolIndex := 2 * len(blocks)
-	for i := range blocks {
-		if hasService(blocks, i, func(b Blocks) bool { return b.School }) {
-			prevSchoolIndex = i
-		}
-		schoolDistances[i] = i - prevSchoolIndex
-	}
-
-	for i := len(blocks) - 1; i >= 0; i-- {
-		if hasService(blocks, i, func(b Blocks) bool { return b.School }) {
-			nextSchoolIndex = i
-		}
-		schoolDistances[i] = min(schoolDistances[i], nextSchoolIndex-i)
-	}
-
-	prevStoreIndex := -len(blocks)
-	nextStoreIndex := 2 * len(blocks)
-	for i := range blocks {
-		if hasService(blocks, i, func(b Blocks) bool { return b.Store }) {
-			prevStoreIndex = i
-		}
-		storeDistances[i] = i - prevStoreIndex
-	}
-
-	for i := len(blocks) - 1; i >= 0; i-- {
-		if hasService(blocks, i, func(b Blocks) bool { return b.Store }) {
-			nextStoreIndex = i
-		}
-		storeDistances[i] = min(storeDistances[i], nextStoreIndex-i)
-	}
+	gymDistances := calcDistance(blocks, func(b Blocks) bool { return b.Gym })
+	schoolDistances := calcDistance(blocks, func(b Blocks) bool { return b.School })
+	storeDistances := calcDistance(blocks, func(b Blocks) bool { return b.Store })
 
 	bestBlockIndex := len(blocks)
 	bestMaxDist := len(blocks)
@@ -97,4 +49,23 @@ func hasService(block []Blocks, index int, service func(Blocks) bool) bool {
 		return false
 	}
 	return service(block[index])
+}
+
+func calcDistance(blocks []Blocks, service func(Blocks) bool) []int {
+	distances := make([]int, len(blocks))
+	prevIndex := -len(blocks)
+	nextIndex := 2 * len(blocks)
+	for i := range blocks {
+		if hasService(blocks, i, service) {
+			prevIndex = i
+		}
+		distances[i] = i - prevIndex
+	}
+	for i := len(blocks) - 1; i >= 0; i-- {
+		if hasService(blocks, i, service) {
+			nextIndex = i
+		}
+		distances[i] = min(distances[i], nextIndex-i)
+	}
+	return distances
 }
